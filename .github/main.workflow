@@ -3,21 +3,26 @@ workflow "Build and Publish" {
   resolves = "Docker Publish"
 }
 
+action "Shellcheck" {
+  uses = "actions/bin/shellcheck@master"
+  args = "*.sh"
+}
+
 action "Docker Lint" {
   uses = "docker://replicated/dockerfilelint"
   args = ["Dockerfile"]
 }
 
 action "Build" {
-  needs = ["Docker Lint"]
+  needs = ["Shellcheck", "Docker Lint"]
   uses = "actions/docker/cli@master"
-  args = "build -t node-package-task ."
+  args = "build -t node-app-tasks ."
 }
 
 action "Docker Tag" {
   needs = ["Build"]
   uses = "actions/docker/tag@master"
-  args = "node-package-task satya164/node-package-task --no-latest"
+  args = "node-app-tasks satya164/node-app-tasks --no-latest"
 }
 
 action "Publish Filter" {
@@ -35,5 +40,5 @@ action "Docker Login" {
 action "Docker Publish" {
   needs = ["Docker Tag", "Docker Login"]
   uses = "actions/docker/cli@master"
-  args = "push satya164/node-package-task"
+  args = "push satya164/node-app-tasks"
 }
